@@ -6,8 +6,6 @@ import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import org.eduardomango.authmicroservice.models.CredentialsEntity;
-import org.eduardomango.authmicroservice.models.auth.AuthResponse;
-import org.eduardomango.authmicroservice.models.auth.TokenRequest;
 import org.eduardomango.authmicroservice.services.interfaces.JwtService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -35,7 +33,6 @@ public class JwtServiceImpl implements JwtService {
     public String extractUsername(String token) {
         return extractClaim(token, Claims::getSubject);
     }
-
 
     @Override
     public String generateToken(UserDetails userDetails) {

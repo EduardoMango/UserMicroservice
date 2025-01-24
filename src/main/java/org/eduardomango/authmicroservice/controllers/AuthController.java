@@ -10,6 +10,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import org.eduardomango.authmicroservice.models.CredentialsEntity;
 import org.eduardomango.authmicroservice.models.auth.*;
 import org.eduardomango.authmicroservice.services.JpaUserDetailsService;
+import org.eduardomango.authmicroservice.services.OAuth2ServiceImpl;
 import org.eduardomango.authmicroservice.services.interfaces.AuthService;
 import org.eduardomango.authmicroservice.services.interfaces.JwtService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,15 +30,13 @@ public class AuthController {
 
     private final JwtService jwtService;
     private final AuthService authenticationService;
-    private final RestTemplate restTemplate;
-    private final JpaUserDetailsService userService;
+    private final OAuth2ServiceImpl oauth2Service;
 
     @Autowired
-    public AuthController(JwtService jwtService, AuthService authenticationService, RestTemplate restTemplate, JpaUserDetailsService userService) {
+    public AuthController(JwtService jwtService, AuthService authenticationService, OAuth2ServiceImpl oauth2Service) {
         this.jwtService = jwtService;
         this.authenticationService = authenticationService;
-        this.restTemplate = restTemplate;
-        this.userService = userService;
+        this.oauth2Service = oauth2Service;
     }
 
     @Operation(
@@ -65,36 +64,13 @@ public class AuthController {
     }
 
     @PostMapping("/exchange/github")
-    public ResponseEntity<?> exchangeGithubToken(@RequestBody TokenRequest tokenRequest) {
-        String githubToken = tokenRequest.getToken();
+    public ResponseEntity<AuthResponse> exchangeGithubToken(@RequestBody TokenRequest tokenRequest) {
+        AuthResponse response = oauth2Service.exchangeGithubToken(tokenRequest);
 
-        // 1. Validar token con GitHub
-        HttpHeaders headers = new HttpHeaders();
-        headers.setBearerAuth(githubToken);
-        HttpEntity<String> entity = new HttpEntity<>(headers);
-
-        try {
-            ResponseEntity<GithubUserResponse> response = restTemplate.exchange(
-                    "https://api.github.com/user",
-                    HttpMethod.GET,
-                    entity,
-                    GithubUserResponse.class
-            );
-
-            GithubUserResponse githubUser = response.getBody();
-
-            // 2. Verificar si el usuario existe o crear uno nuevo
-            CredentialsEntity localUser = userService.findOrCreateUser(githubUser);
-
-            // 3. Generar el token JWT propio
-            String jwt = jwtService.generateToken(localUser);
-
-      // 4. Devolver el token JWT
-      return ResponseEntity.ok(new AuthResponse(jwt,localUser.getRefreshToken()));
-
-        } catch (HttpClientErrorException e) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid GitHub token");
+        if (response!=null) {
+            return ResponseEntity.ok(response);
         }
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
     }
 
     @GetMapping("/success")
