@@ -5,6 +5,7 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
+import org.eduardomango.authmicroservice.models.CredentialsEntity;
 import org.eduardomango.authmicroservice.services.interfaces.JwtService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -25,6 +26,9 @@ public class JwtServiceImpl implements JwtService {
     @Value("${jwt.expiration}")
     private Long jwtExpiration;
 
+    @Value("${refresh-token.expiration}")
+    private Long refreshTokenExpiration;
+
     @Override
     public String extractUsername(String token) {
         return extractClaim(token, Claims::getSubject);
@@ -38,12 +42,27 @@ public class JwtServiceImpl implements JwtService {
     }
 
     @Override
+    public String generateRefreshToken(UserDetails userDetails) {
+        Map<String, Object> claims = new HashMap<>();
+        // Agrega información relevante al refresh token (si es necesario)
+        claims.put("type", "refresh");
+        return buildToken(claims, userDetails, refreshTokenExpiration);
+    }
+
+    @Override
     public boolean isTokenValid(String token, UserDetails userDetails) {
         final String username = extractUsername(token);
         return (username.equals(userDetails.getUsername()))
                 && !isTokenExpired(token)
                 && userDetails.isAccountNonLocked()
                 && userDetails.isEnabled();
+    }
+
+    @Override
+    public boolean validateRefreshToken(String refreshToken, UserDetails userDetails) {
+        final String username = extractUsername(refreshToken);
+        return (username.equals(userDetails.getUsername())) &&
+                !isTokenExpired(refreshToken);
     }
 
     private <T> T extractClaim(String token, Function<Claims, T> claimsResolver) {

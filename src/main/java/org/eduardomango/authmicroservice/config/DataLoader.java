@@ -12,9 +12,11 @@ import org.eduardomango.authmicroservice.repositories.CredentialsRepository;
 import org.eduardomango.authmicroservice.repositories.PermitRepository;
 import org.eduardomango.authmicroservice.repositories.ProfileRepository;
 import org.eduardomango.authmicroservice.repositories.RoleRepository;
+import org.eduardomango.authmicroservice.services.impl.JwtServiceImpl;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 // Loads basic data
@@ -26,13 +28,15 @@ public class DataLoader {
     private final ProfileRepository profileRepository;
     private final PasswordEncoder passwordEncoder;
     private final CredentialsRepository credentialsRepository;
+    private final JwtServiceImpl jwtService;
 
-    public DataLoader(PermitRepository permitRepository, RoleRepository roleRepository, ProfileRepository profileRepository, PasswordEncoder passwordEncoder, CredentialsRepository credentialsRepository) {
+    public DataLoader(PermitRepository permitRepository, RoleRepository roleRepository, ProfileRepository profileRepository, PasswordEncoder passwordEncoder, CredentialsRepository credentialsRepository, JwtServiceImpl jwtService) {
         this.permitRepository = permitRepository;
         this.roleRepository = roleRepository;
         this.profileRepository = profileRepository;
         this.passwordEncoder = passwordEncoder;
         this.credentialsRepository = credentialsRepository;
+        this.jwtService = jwtService;
     }
 
     @PostConstruct
@@ -246,15 +250,20 @@ public class DataLoader {
     CredentialsEntity credentialsCustomer = CredentialsEntity.builder()
             .profile(profileCustomer)
             .username("customer")
+            .email("customer@email.com")
             .password(passwordEncoder.encode("customer"))
+            .createdAt(LocalDateTime.now())
+            .refreshToken("refreshToken")
             .build();
 
     credentialsRepository.save(credentialsCustomer);
 
     CredentialsEntity credentialsSeller = CredentialsEntity.builder()
             .username("sellerTest")
+            .email("seller@email.com")
             .password(passwordEncoder.encode("sellerTest"))
             .profile(profileSeller)
+            .createdAt(LocalDateTime.now())
             .build();
 
     credentialsRepository.save(credentialsSeller);

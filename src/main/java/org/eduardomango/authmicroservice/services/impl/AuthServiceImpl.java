@@ -6,6 +6,7 @@ import org.eduardomango.authmicroservice.exceptions.InvalidUsernameException;
 import org.eduardomango.authmicroservice.exceptions.UserNotFoundException;
 import org.eduardomango.authmicroservice.models.CredentialsEntity;
 import org.eduardomango.authmicroservice.models.auth.AuthRequest;
+import org.eduardomango.authmicroservice.models.auth.AuthResponse;
 import org.eduardomango.authmicroservice.repositories.CredentialsRepository;
 import org.eduardomango.authmicroservice.services.interfaces.AuthService;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -19,11 +20,13 @@ import java.util.Optional;
 public class AuthServiceImpl implements AuthService {
 
     private final CredentialsRepository credentialsRepository;
+    private final JwtServiceImpl tokenProvider;
     private final AuthenticationManager authenticationManager;
     private final PasswordEncoder passwordEncoder;
 
-    public AuthServiceImpl(CredentialsRepository credentialsRepository, AuthenticationManager authenticationManager, PasswordEncoder passwordEncoder) {
+    public AuthServiceImpl(CredentialsRepository credentialsRepository, JwtServiceImpl tokenProvider, AuthenticationManager authenticationManager, PasswordEncoder passwordEncoder) {
         this.credentialsRepository = credentialsRepository;
+        this.tokenProvider = tokenProvider;
         this.authenticationManager = authenticationManager;
         this.passwordEncoder = passwordEncoder;
     }
@@ -36,6 +39,22 @@ public class AuthServiceImpl implements AuthService {
                 )
         );
         return credentialsRepository.findByUsername(input.username()).orElseThrow();
+    }
+
+    public AuthResponse refreshAccessToken(String refreshToken) {
+        CredentialsEntity user = credentialsRepository.findByRefreshToken(refreshToken)
+                .orElseThrow(() -> new IllegalArgumentException("Invalid refresh token"));
+
+        if (!tokenProvider.validateRefreshToken(refreshToken,user)) {
+            throw new IllegalArgumentException("Refresh token expired or invalid");
+        }
+
+        String newAccessToken = tokenProvider.generateToken(user);
+        String newRefreshToken = tokenProvider.generateRefreshToken(user);
+        user.setRefreshToken(newRefreshToken);
+        credentialsRepository.save(user);
+
+        return new AuthResponse(newAccessToken, newRefreshToken);
     }
 
 

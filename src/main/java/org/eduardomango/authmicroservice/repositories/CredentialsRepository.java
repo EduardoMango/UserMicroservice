@@ -12,4 +12,8 @@ public interface CredentialsRepository
     extends JpaRepository<CredentialsEntity, Long>, JpaSpecificationExecutor<CredentialsEntity> {
 
     Optional<CredentialsEntity> findByUsername(String username);
+
+    Optional<CredentialsEntity> findByOauth2ProviderId(String oauth2ProviderId);
+
+    Optional<CredentialsEntity> findByRefreshToken(String refreshToken);
 }
