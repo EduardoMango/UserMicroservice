@@ -1,9 +1,10 @@
 package org.eduardomango.authmicroservice.config;
 
+import org.eduardomango.authmicroservice.exceptions.handler.CustomAuthenticationFailureHandler;
 import org.eduardomango.authmicroservice.services.JpaUserDetailsService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
@@ -14,6 +15,7 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.HttpStatusEntryPoint;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.cors.CorsConfiguration;
@@ -29,11 +31,13 @@ public class SecurityConfig {
     private final RestAuthenticationEntryPoint restAuthenticationEntryPoint;
     private final JpaUserDetailsService userService;
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
+    private final CustomAuthenticationFailureHandler authenticationFailureHandler;
 
-    public SecurityConfig(RestAuthenticationEntryPoint restAuthenticationEntryPoint, JpaUserDetailsService userService, JwtAuthenticationFilter jwtAuthenticationFilter) {
+    public SecurityConfig(RestAuthenticationEntryPoint restAuthenticationEntryPoint, JpaUserDetailsService userService, JwtAuthenticationFilter jwtAuthenticationFilter, CustomAuthenticationFailureHandler authenticationFailureHandler) {
         this.restAuthenticationEntryPoint = restAuthenticationEntryPoint;
         this.userService = userService;
         this.jwtAuthenticationFilter = jwtAuthenticationFilter;
+        this.authenticationFailureHandler = authenticationFailureHandler;
     }
 
     @Bean
@@ -43,19 +47,26 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-        http.cors(Customizer.withDefaults())
+        http.exceptionHandling(
+                e ->
+                        e.authenticationEntryPoint(restAuthenticationEntryPoint))
+                .cors(Customizer.withDefaults())
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/auth/login", "/oauth2/**", "/auth/exchange/**").permitAll()
+                        .requestMatchers("/auth/authenticate","/auth/exchange/github",
+                                "/oauth2/**", "/auth/exchange/**","/login",
+                                "/register","/auth/user","/auth/refresh").permitAll()
+                        .requestMatchers("/js/**","/css/**").permitAll()
+                        .requestMatchers("/success").authenticated()
                         .anyRequest().authenticated())
                 .oauth2Login(oauth2 -> oauth2
-                        .loginPage("/auth/login")
-                        .defaultSuccessUrl("/auth/success", true)
-                        .failureUrl("/auth/failure"))
+                        .loginPage("/login")
+                        .defaultSuccessUrl("/success", true)
+                        .failureUrl("/failure"))
                 .headers(headers -> headers.frameOptions(HeadersConfigurer.FrameOptionsConfig::sameOrigin))
-                .sessionManagement(manager -> manager.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
-                .exceptionHandling(e -> e.authenticationEntryPoint(restAuthenticationEntryPoint));
+                .sessionManagement(manager -> manager.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
+                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+
 
         return http.build();
     }
@@ -68,16 +79,16 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
-        config.setAllowedOrigins(List.of("http://localhost:4200")); // Origen del frontend
+        config.setAllowedOrigins(List.of("http://localhost:4200","http://localhost:8080")); // Origen del frontend
         config.setAllowedMethods(List.of("GET", "POST","PATCH", "PUT", "DELETE", "OPTIONS")); // Métodos permitidos
         config.setAllowedHeaders(List.of("Authorization", "Content-Type", "Accept","*")); // Encabezados permitidos
-        config.setAllowCredentials(true); // Permitir cookies o autenticación basada en sesiones
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", config); // Aplica configuración global
 
         return source;
     }
+
 
     @Bean
     public RestTemplate restTemplate() {

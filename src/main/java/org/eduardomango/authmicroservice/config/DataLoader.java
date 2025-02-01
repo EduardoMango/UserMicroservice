@@ -253,8 +253,10 @@ public class DataLoader {
             .email("customer@email.com")
             .password(passwordEncoder.encode("customer"))
             .createdAt(LocalDateTime.now())
-            .refreshToken("refreshToken")
+            .refreshToken("refresh")
             .build();
+
+    credentialsCustomer.setRefreshToken(jwtService.generateRefreshToken(credentialsCustomer));
 
     credentialsRepository.save(credentialsCustomer);
 
@@ -265,6 +267,8 @@ public class DataLoader {
             .profile(profileSeller)
             .createdAt(LocalDateTime.now())
             .build();
+
+    credentialsSeller.setRefreshToken(jwtService.generateRefreshToken(credentialsSeller));
 
     credentialsRepository.save(credentialsSeller);
     }

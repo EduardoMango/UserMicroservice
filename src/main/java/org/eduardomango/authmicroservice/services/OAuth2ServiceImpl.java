@@ -43,6 +43,7 @@ public class OAuth2ServiceImpl {
             );
 
             GithubUserResponse githubUser = response.getBody();
+      System.out.println(response.getBody().getEmail());
 
             // 2. Verify if user exists in our database. If not, create it
             CredentialsEntity localUser = userDetailsService.findOrCreateUser(githubUser);

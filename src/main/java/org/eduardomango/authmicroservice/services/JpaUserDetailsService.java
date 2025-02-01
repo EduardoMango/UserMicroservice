@@ -39,11 +39,14 @@ public class JpaUserDetailsService implements UserDetailsService {
               newUser.setCreatedAt(LocalDateTime.now());
               newUser.setOauth2Provider("Github");
               newUser.setOauth2ProviderId(String.valueOf(githubUser.getId()));
-                ProfileEntity profile = profileRepository.findByProfile(UserProfile.CUSTOMER).orElse(new ProfileEntity(UserProfile.CUSTOMER));
-                newUser.setProfile(profile);
+              ProfileEntity profile =
+                  profileRepository
+                      .findByProfile(UserProfile.CUSTOMER)
+                      .orElse(new ProfileEntity(UserProfile.CUSTOMER));
+              newUser.setProfile(profile);
 
-                String refreshToken = tokenProvider.generateRefreshToken(newUser);
-                newUser.setRefreshToken(refreshToken);
+              String refreshToken = tokenProvider.generateRefreshToken(newUser);
+              newUser.setRefreshToken(refreshToken);
               return credentialsRepository.save(newUser);
             });
     }

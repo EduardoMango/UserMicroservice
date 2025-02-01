@@ -9,21 +9,16 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.eduardomango.authmicroservice.models.CredentialsEntity;
 import org.eduardomango.authmicroservice.models.auth.*;
-import org.eduardomango.authmicroservice.services.JpaUserDetailsService;
 import org.eduardomango.authmicroservice.services.OAuth2ServiceImpl;
 import org.eduardomango.authmicroservice.services.interfaces.AuthService;
 import org.eduardomango.authmicroservice.services.interfaces.JwtService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.*;
-import org.springframework.security.core.userdetails.User;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
+import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.client.HttpClientErrorException;
-import org.springframework.web.client.RestTemplate;
-import org.springframework.web.server.ResponseStatusException;
 
-@RestController
+
+@Controller
 @RequestMapping("/auth")
 @Tag(name = "Authentication", description = "Operations related to user authentication and account management")
 public class AuthController {
@@ -48,13 +43,13 @@ public class AuthController {
                     content = @Content(schema = @Schema(implementation = AuthResponse.class))),
             @ApiResponse(responseCode = "401", description = "Invalid credentials")
     })
-    @PostMapping("/login")
-    public AuthResponse authenticate(@RequestBody AuthRequest loginUserDto) {
+    @PostMapping("/authenticate")
+    public ResponseEntity<AuthResponse> authenticate(@RequestBody AuthRequest loginUserDto) {
         CredentialsEntity authenticatedUser = authenticationService.authenticate(loginUserDto);
 
         String jwtToken = jwtService.generateToken(authenticatedUser);
 
-        return new AuthResponse(jwtToken,authenticatedUser.getRefreshToken());
+        return ResponseEntity.ok( new AuthResponse(jwtToken,authenticatedUser.getRefreshToken()));
     }
 
     @PostMapping("/refresh")
@@ -73,19 +68,9 @@ public class AuthController {
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
     }
 
-    @GetMapping("/success")
-    public ResponseEntity<String> loginSuccess(OAuth2AuthenticationToken authentication) {
-        return ResponseEntity.ok("Login successful with user: " + authentication.getPrincipal().getName());
+    @PostMapping("/user")
+    public ResponseEntity<Void> addUser(@RequestBody CredentialsEntity user) {
+        authenticationService.addUser(user);
+        return new ResponseEntity<>(HttpStatus.CREATED);
     }
-
-    @GetMapping("/failure")
-    public ResponseEntity<String> loginFailure() {
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Authentication error");
-    }
-
-    @GetMapping("/test")
-    public ResponseEntity<String> testTokenValidity(){
-        return ResponseEntity.ok("Token is valid");
-    }
-
 }

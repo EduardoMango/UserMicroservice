@@ -5,15 +5,19 @@ import org.eduardomango.authmicroservice.exceptions.InvalidPasswordException;
 import org.eduardomango.authmicroservice.exceptions.InvalidUsernameException;
 import org.eduardomango.authmicroservice.exceptions.UserNotFoundException;
 import org.eduardomango.authmicroservice.models.CredentialsEntity;
+import org.eduardomango.authmicroservice.models.Enum.UserProfile;
+import org.eduardomango.authmicroservice.models.ProfileEntity;
 import org.eduardomango.authmicroservice.models.auth.AuthRequest;
 import org.eduardomango.authmicroservice.models.auth.AuthResponse;
 import org.eduardomango.authmicroservice.repositories.CredentialsRepository;
+import org.eduardomango.authmicroservice.repositories.ProfileRepository;
 import org.eduardomango.authmicroservice.services.interfaces.AuthService;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.Optional;
 
 @Service
@@ -23,12 +27,14 @@ public class AuthServiceImpl implements AuthService {
     private final JwtServiceImpl tokenProvider;
     private final AuthenticationManager authenticationManager;
     private final PasswordEncoder passwordEncoder;
+    private final ProfileRepository profileRepository;
 
-    public AuthServiceImpl(CredentialsRepository credentialsRepository, JwtServiceImpl tokenProvider, AuthenticationManager authenticationManager, PasswordEncoder passwordEncoder) {
+    public AuthServiceImpl(CredentialsRepository credentialsRepository, JwtServiceImpl tokenProvider, AuthenticationManager authenticationManager, PasswordEncoder passwordEncoder, ProfileRepository profileRepository) {
         this.credentialsRepository = credentialsRepository;
         this.tokenProvider = tokenProvider;
         this.authenticationManager = authenticationManager;
         this.passwordEncoder = passwordEncoder;
+        this.profileRepository = profileRepository;
     }
 
     public CredentialsEntity authenticate(AuthRequest input) {
@@ -88,5 +94,17 @@ public class AuthServiceImpl implements AuthService {
         }
 
         credentialsRepository.save(credentials);
+    }
+
+    public void addUser(CredentialsEntity user) {
+        user.setPassword(passwordEncoder.encode(user.getPassword()));
+        user.setCreatedAt(LocalDateTime.now());
+
+        ProfileEntity profile =
+                profileRepository
+                        .findByProfile(UserProfile.CUSTOMER)
+                        .orElse(new ProfileEntity(UserProfile.CUSTOMER));
+        user.setProfile(profile);
+        credentialsRepository.save(user);
     }
 }

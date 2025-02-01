@@ -7,8 +7,7 @@ spring:
             client-id: ${github.client.id}
             client-secret: ${github.client.secret}
             scope: read:user, user:email
-            redirect-uri: "http://localhost:4200/login/oauth2/code/{registrationId}"
-            client-authentication-method: post
+            redirect-uri: "http://localhost:8080/login/oauth2/code/{registrationId}"
             authorization-grant-type: authorization_code
             provider: github
         provider:

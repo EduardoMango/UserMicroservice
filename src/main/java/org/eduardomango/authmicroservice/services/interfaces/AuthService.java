@@ -9,4 +9,5 @@ public interface AuthService {
     CredentialsEntity authenticate(AuthRequest input);
     AuthResponse refreshAccessToken(String refreshToken);
     void updateCredentials(Long id, AuthRequest newCredentials);
+    void addUser(CredentialsEntity user);
 }
