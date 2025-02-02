@@ -37,6 +37,12 @@ public class AuthServiceImpl implements AuthService {
         this.profileRepository = profileRepository;
     }
 
+    /** Authenticate a user by username and password
+     *
+     * @param input containing username and password
+     * @return the credentials of the user if it was correctly authenticated
+     * otherwise, throws exceptions to capture the error
+     */
     public CredentialsEntity authenticate(AuthRequest input) {
         authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
@@ -47,6 +53,12 @@ public class AuthServiceImpl implements AuthService {
         return credentialsRepository.findByUsername(input.username()).orElseThrow();
     }
 
+    /** Receives a refresh token from a user and returns a new access token
+     * as well as updates the refresh token and returns it
+     *
+     * @param refreshToken refresh token of the user. Must be the same as the database
+     * @return AuthResponse, object containing the new access token and the new refresh token
+     */
     public AuthResponse refreshAccessToken(String refreshToken) {
         CredentialsEntity user = credentialsRepository.findByRefreshToken(refreshToken)
                 .orElseThrow(() -> new IllegalArgumentException("Invalid refresh token"));
@@ -64,6 +76,12 @@ public class AuthServiceImpl implements AuthService {
     }
 
 
+    /** Receives a user id and a new credentials object,
+     * updates the username or password or both of the user in the database
+     *
+     * @param id the id of the user to update
+     * @param newCredentials new credentials containing the username, password or both
+     */
     public void updateCredentials(Long id, AuthRequest newCredentials) {
         Optional<CredentialsEntity> credentialsOptional = credentialsRepository.findById(id);
 
@@ -96,6 +114,13 @@ public class AuthServiceImpl implements AuthService {
         credentialsRepository.save(credentials);
     }
 
+    /**
+     * Receives a user object, encodes its password,
+     * assigns a default profile (CUSTOMER),
+     * sets the creation timestamp, and saves it to the database.
+     *
+     * @param user The user credentials to be added to the database.
+     */
     public void addUser(CredentialsEntity user) {
         user.setPassword(passwordEncoder.encode(user.getPassword()));
         user.setCreatedAt(LocalDateTime.now());

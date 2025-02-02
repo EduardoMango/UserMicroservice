@@ -35,6 +35,17 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         this.jwtService = jwtService;
     }
 
+    /**
+     * JWT authentication filter that intercepts every request to check for a valid token.
+     * If a valid token is found, it sets the authentication context for the request.
+     * If the token is expired, it returns a 401 Unauthorized response.
+     *
+     * @param request The incoming HTTP request.
+     * @param response The HTTP response to be sent.
+     * @param filterChain The filter chain to continue processing the request.
+     * @throws ServletException If an error occurs during request processing.
+     * @throws IOException If an I/O error occurs.
+     */
     @Override
     protected void doFilterInternal(HttpServletRequest request,
                                     HttpServletResponse response,
@@ -71,6 +82,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         filterChain.doFilter(request, response);
         }catch (ExpiredJwtException ex) {
+            // Custom response for expired token
             System.out.println("Thrown exception: " + ex.getMessage());
             Map<String, String> errorResponse = new HashMap<>();
             errorResponse.put("message", "Token has expired");
@@ -84,6 +96,13 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         }
     }
 
+    /**
+     * Determines whether a request should bypass the authentication filter.
+     * Requests matching certain paths (such as login and registration) are excluded from filtering.
+     *
+     * @param request The incoming HTTP request.
+     * @return True if the request should not be filtered, false otherwise.
+     */
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
         String path = request.getServletPath();

@@ -1,10 +1,8 @@
 package org.eduardomango.authmicroservice.config;
 
-import org.eduardomango.authmicroservice.exceptions.handler.CustomAuthenticationFailureHandler;
 import org.eduardomango.authmicroservice.services.JpaUserDetailsService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
@@ -15,7 +13,6 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.authentication.HttpStatusEntryPoint;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.cors.CorsConfiguration;
@@ -24,20 +21,16 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import java.util.List;
 
-import static org.springframework.security.config.http.SessionCreationPolicy.STATELESS;
-
 @Configuration
 public class SecurityConfig {
     private final RestAuthenticationEntryPoint restAuthenticationEntryPoint;
     private final JpaUserDetailsService userService;
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
-    private final CustomAuthenticationFailureHandler authenticationFailureHandler;
 
-    public SecurityConfig(RestAuthenticationEntryPoint restAuthenticationEntryPoint, JpaUserDetailsService userService, JwtAuthenticationFilter jwtAuthenticationFilter, CustomAuthenticationFailureHandler authenticationFailureHandler) {
+    public SecurityConfig(RestAuthenticationEntryPoint restAuthenticationEntryPoint, JpaUserDetailsService userService, JwtAuthenticationFilter jwtAuthenticationFilter) {
         this.restAuthenticationEntryPoint = restAuthenticationEntryPoint;
         this.userService = userService;
         this.jwtAuthenticationFilter = jwtAuthenticationFilter;
-        this.authenticationFailureHandler = authenticationFailureHandler;
     }
 
     @Bean

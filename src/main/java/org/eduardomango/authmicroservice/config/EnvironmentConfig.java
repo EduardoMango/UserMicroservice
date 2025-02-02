@@ -9,6 +9,9 @@ import java.util.Objects;
 @Configuration
 public class EnvironmentConfig {
 
+    /*
+      Loads environment variables from .env file
+     */
     static {
         Dotenv dotenv = Dotenv.load();
         System.setProperty("spring.datasource.url", Objects.requireNonNull(dotenv.get("DB_URL")));

@@ -27,6 +27,12 @@ public class JpaUserDetailsService implements UserDetailsService {
         this.tokenProvider = tokenProvider;
     }
 
+    /** Retrieves the credentials of a user authenticated via GitHub
+     * If not present in database (new user), creates a new user and stores it in the database
+     *
+     * @param githubUser user authenticated via GitHub
+     * @return credentials of the user
+     */
     public CredentialsEntity findOrCreateUser(GithubUserResponse githubUser) {
     return credentialsRepository
         .findByUsername(githubUser.getLogin())
@@ -51,6 +57,12 @@ public class JpaUserDetailsService implements UserDetailsService {
             });
     }
 
+    /**
+     * Retrieves a user from the database based on the provided username.
+     * @param username of the user to be retrieved
+     * @return the user details of the user
+     * @throws UsernameNotFoundException when the user is not found
+     */
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         return credentialsRepository.findByUsername(username).orElseThrow(() -> new UsernameNotFoundException("User not found"));

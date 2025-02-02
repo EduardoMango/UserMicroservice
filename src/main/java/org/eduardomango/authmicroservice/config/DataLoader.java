@@ -39,6 +39,9 @@ public class DataLoader {
         this.jwtService = jwtService;
     }
 
+    /**
+     * Loads basic data for testing
+     */
     @PostConstruct
     public void init() {
         List<PermitEntity> permits = List.of(
