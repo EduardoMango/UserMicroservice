@@ -16,6 +16,7 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.Optional;
@@ -59,6 +60,7 @@ public class AuthServiceImpl implements AuthService {
      * @param refreshToken refresh token of the user. Must be the same as the database
      * @return AuthResponse, object containing the new access token and the new refresh token
      */
+    @Transactional
     public AuthResponse refreshAccessToken(String refreshToken) {
         CredentialsEntity user = credentialsRepository.findByRefreshToken(refreshToken)
                 .orElseThrow(() -> new IllegalArgumentException("Invalid refresh token"));

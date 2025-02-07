@@ -36,7 +36,7 @@ document.getElementById("testTokenValidity")
     })
         .then(response => {
             if (response.ok) {
-                return response.json();  // Solo hacer parse si la respuesta es OK
+                return response.json();
             } else {
                 if (response.status === 401) {
                     alert("Token has expired. Refreshing token.. Please try again");
@@ -72,5 +72,6 @@ document.getElementById("logoutButton")
     .onclick = function(event) {
 
     localStorage.removeItem('authToken');
+    localStorage.removeItem('refreshToken');
     window.location.href = '/logout';
 };

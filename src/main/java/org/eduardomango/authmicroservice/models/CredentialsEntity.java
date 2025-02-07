@@ -43,7 +43,7 @@ public class CredentialsEntity implements UserDetails {
     @JoinColumn(name = "profile_id")
     private ProfileEntity profile;
 
-    @Column(name = "refresh_token")
+    @Column(name = "refresh_token",length = 2048,unique = true, nullable = false)
     private String refreshToken;
 
     @ManyToMany(cascade = CascadeType.MERGE, fetch = FetchType.EAGER)

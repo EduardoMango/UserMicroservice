@@ -6,6 +6,7 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
+import org.eduardomango.authmicroservice.config.JwtKeyProvider;
 import org.eduardomango.authmicroservice.models.CredentialsEntity;
 import org.eduardomango.authmicroservice.models.auth.AuthResponse;
 import org.eduardomango.authmicroservice.models.auth.TokenRequest;
@@ -23,14 +24,18 @@ import java.util.function.Function;
 @Service
 public class JwtServiceImpl implements JwtService {
 
-    @Value("${jwt.secret}")
-    private String jwtSecretKey;
-
     @Value("${jwt.expiration}")
     private Long jwtExpiration;
 
     @Value("${refresh-token.expiration}")
     private Long refreshTokenExpiration;
+
+    private final JwtKeyProvider keyProvider;
+
+    public JwtServiceImpl(JwtKeyProvider keyProvider) {
+        this.keyProvider = keyProvider;
+    }
+
 
     /** Extracts the username clam from a given token
      *
@@ -63,7 +68,6 @@ public class JwtServiceImpl implements JwtService {
     @Override
     public String generateRefreshToken(UserDetails userDetails) {
         Map<String, Object> claims = new HashMap<>();
-        // Agrega información relevante al refresh token (si es necesario)
         claims.put("type", "refresh");
         return buildToken(claims, userDetails, refreshTokenExpiration);
     }
@@ -80,7 +84,7 @@ public class JwtServiceImpl implements JwtService {
         try {
             // This will throw an exception if the signature is invalid
             Jwts.parserBuilder()
-                    .setSigningKey(getSignInKey())
+                    .setSigningKey(keyProvider.getPublicKey())
                     .build()
                     .parseClaimsJws(token);
 
@@ -104,17 +108,15 @@ public class JwtServiceImpl implements JwtService {
     @Override
     public boolean validateRefreshToken(String refreshToken, UserDetails userDetails) {
         try {
-            // Verificar la firma para asegurarse de que no fue manipulado
             Jwts.parserBuilder()
-                    .setSigningKey(getSignInKey())
+                    .setSigningKey(keyProvider.getPublicKey())
                     .build()
                     .parseClaimsJws(refreshToken);
 
-            // Verificar si el token ha expirado
             return !isTokenExpired(refreshToken);
 
         } catch (JwtException e) {
-            return false; // Token inválido
+            return false; // Invalid token
         }
     }
 
@@ -142,7 +144,7 @@ public class JwtServiceImpl implements JwtService {
     private Claims extractAllClaims(String token) {
         return Jwts
                 .parserBuilder()
-                .setSigningKey(getSignInKey())
+                .setSigningKey(keyProvider.getPublicKey())
                 .build()
                 .parseClaimsJws(token)
                 .getBody();
@@ -167,19 +169,8 @@ public class JwtServiceImpl implements JwtService {
                 .setSubject(userDetails.getUsername())
                 .setIssuedAt(new Date(System.currentTimeMillis()))
                 .setExpiration(new Date(System.currentTimeMillis() + expiration))
-                .signWith(getSignInKey(), SignatureAlgorithm.HS256)
+                .signWith(keyProvider.getPrivateKey(), SignatureAlgorithm.RS256)
                 .compact();
-    }
-
-    /**
-     * Retrieves the signing key used for JWT token verification.
-     * The key is decoded from a Base64-encoded secret key and converted into an HMAC SHA key.
-     *
-     * @return The signing key for JWT token validation.
-     */
-    private Key getSignInKey() {
-        byte[] keyBytes = Decoders.BASE64.decode(jwtSecretKey);
-        return Keys.hmacShaKeyFor(keyBytes);
     }
 
     /** Verifies if a given token is expired

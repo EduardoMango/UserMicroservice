@@ -1,3 +1,7 @@
+jwt:
+  private-key: classpath:private_key.pem
+  public-key: classpath:public_key.pem
+
 spring:
   security:
     oauth2:
@@ -16,3 +20,5 @@ spring:
             token-uri: https://github.com/login/oauth/access_token
             user-info-uri: https://api.github.com/user
             user-name-attribute: id
+
+
