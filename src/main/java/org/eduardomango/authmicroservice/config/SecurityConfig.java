@@ -24,12 +24,10 @@ import java.util.List;
 @Configuration
 public class SecurityConfig {
     private final RestAuthenticationEntryPoint restAuthenticationEntryPoint;
-    private final JpaUserDetailsService userService;
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
 
-    public SecurityConfig(RestAuthenticationEntryPoint restAuthenticationEntryPoint, JpaUserDetailsService userService, JwtAuthenticationFilter jwtAuthenticationFilter) {
+    public SecurityConfig(RestAuthenticationEntryPoint restAuthenticationEntryPoint, JwtAuthenticationFilter jwtAuthenticationFilter) {
         this.restAuthenticationEntryPoint = restAuthenticationEntryPoint;
-        this.userService = userService;
         this.jwtAuthenticationFilter = jwtAuthenticationFilter;
     }
 

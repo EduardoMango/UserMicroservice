@@ -52,12 +52,30 @@ public class AuthController {
         return ResponseEntity.ok( new AuthResponse(jwtToken,authenticatedUser.getRefreshToken()));
     }
 
+    @Operation(
+            summary = "Refresh an access token",
+            description = "This endpoint refreshes an access token based on a refresh token and creates a new RefreshToken."
+    )
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Successful refresh",
+                    content = @Content(schema = @Schema(implementation = AuthResponse.class))),
+            @ApiResponse(responseCode = "401", description = "Invalid refresh token")
+    })
     @PostMapping("/refresh")
     public ResponseEntity<AuthResponse> refreshAccessToken(@RequestBody RefreshTokenRequest request) {
         AuthResponse response = authenticationService.refreshAccessToken(request.getRefreshToken());
         return ResponseEntity.ok(response);
     }
 
+    @Operation(
+            summary = "Exchange a GitHub token for a local access token and refresh token",
+            description = "This endpoint exchanges a GitHub token for a local access token and refresh token."
+    )
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Successful exchange",
+                    content = @Content(schema = @Schema(implementation = AuthResponse.class))),
+            @ApiResponse(responseCode = "401", description = "Invalid GitHub token")
+    })
     @PostMapping("/exchange/github")
     public ResponseEntity<AuthResponse> exchangeGithubToken(@RequestBody TokenRequest tokenRequest) {
         AuthResponse response = oauth2Service.exchangeGithubToken(tokenRequest);
@@ -68,6 +86,14 @@ public class AuthController {
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
     }
 
+    @Operation(
+            summary = "Add a new user",
+            description = "This endpoint adds a new user to the database."
+    )
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "201", description = "User added successfully"),
+            @ApiResponse(responseCode = "400", description = "Invalid user data")
+    })
     @PostMapping("/user")
     public ResponseEntity<Void> addUser(@RequestBody CredentialsEntity user) {
         authenticationService.addUser(user);

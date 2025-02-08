@@ -1,5 +1,8 @@
 package org.eduardomango.authmicroservice.controllers;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
@@ -29,6 +32,14 @@ public class PageController {
         this.oAuth2AuthorizedClientService = oAuth2AuthorizedClientService;
     }
 
+    @Operation(
+            summary = "Successfully logged in",
+            description = "Login success page"
+    )
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Successful login"),
+            @ApiResponse(responseCode = "401", description = "Unauthorized")
+    })
     @GetMapping("/success")
     public String loginSuccess(Model model, Authentication authentication) {
 
@@ -53,11 +64,19 @@ public class PageController {
         return "auth";
     }
 
+    @Operation(
+            summary = "Failed login",
+            description = "Login failure page"
+    )
     @GetMapping("/failure")
     public ResponseEntity<String> loginFailure() {
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Authentication error");
     }
 
+    @Operation(
+            summary = "Login page",
+            description = "Login page with login formulary and GitHub auth button"
+    )
     @GetMapping("/login")
     public String home(Model model, @AuthenticationPrincipal OAuth2User user) {
         if (user != null) {
@@ -67,6 +86,10 @@ public class PageController {
         return "login";
     }
 
+    @Operation(
+            summary = "Logout",
+            description = "Logout page"
+    )
     @GetMapping("/logout")
     public String logout(HttpServletRequest request, HttpServletResponse response) throws IOException {
         request.getSession().invalidate();
@@ -74,6 +97,14 @@ public class PageController {
         return "redirect:/";
     }
 
+    @Operation(
+            summary = "Validate token",
+            description = "Validates token and returns success message"
+    )
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Token is valid"),
+            @ApiResponse(responseCode = "401", description = "Unauthorized")
+    })
     @GetMapping("/validate-token")
     public ResponseEntity<Map<String, String>> testTokenValidity(){
         Map<String, String> response = new HashMap<>();
@@ -81,6 +112,10 @@ public class PageController {
         return ResponseEntity.ok(response);
     }
 
+    @Operation(
+            summary = "Register page",
+            description = "Register page with register formulary"
+    )
     @GetMapping("/register")
     public String register() {
         return "register";
