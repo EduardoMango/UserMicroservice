@@ -12,14 +12,17 @@ import org.eduardomango.authmicroservice.models.auth.AuthResponse;
 import org.eduardomango.authmicroservice.models.auth.TokenRequest;
 import org.eduardomango.authmicroservice.services.interfaces.JwtService;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
 import java.security.Key;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Service
 public class JwtServiceImpl implements JwtService {
@@ -56,7 +59,11 @@ public class JwtServiceImpl implements JwtService {
     @Override
     public String generateToken(UserDetails userDetails) {
         Map<String, Object> claims = new HashMap<>();
-        claims.put("roles", userDetails.getAuthorities());
+        List<String> rolesAsString = userDetails.getAuthorities().stream()
+                .map(GrantedAuthority::getAuthority)
+                .collect(Collectors.toList());
+
+        claims.put("roles", rolesAsString);
         return buildToken(claims, userDetails, jwtExpiration);
     }
 

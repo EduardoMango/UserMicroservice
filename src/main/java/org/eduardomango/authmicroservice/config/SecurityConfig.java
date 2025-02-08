@@ -46,7 +46,8 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/auth/authenticate","/auth/exchange/github",
                                 "/oauth2/**", "/auth/exchange/**","/login",
-                                "/register","/auth/user","/auth/refresh").permitAll()
+                                "/register","/auth/user","/auth/refresh",
+                                "/.well-known/jwks.json").permitAll()
                         .requestMatchers("/js/**","/css/**").permitAll()
                         .requestMatchers("/success").authenticated()
                         .anyRequest().authenticated())
