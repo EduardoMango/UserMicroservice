@@ -44,7 +44,7 @@ public class SecurityConfig {
                 .cors(Customizer.withDefaults())
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/auth/authenticate","/auth/exchange/github",
+                        .requestMatchers("/auth","/auth/exchange/github",
                                 "/oauth2/**", "/auth/exchange/**","/login",
                                 "/register","/auth/user","/auth/refresh",
                                 "/.well-known/jwks.json").permitAll()

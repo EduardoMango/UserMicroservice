@@ -16,6 +16,10 @@ target/
 #Environment Variables
 .env
 
+#Keys
+src/main/resources/private_key.pem
+src/main/resources/public_key.pem
+
 ### IntelliJ IDEA ###
 .idea
 *.iws
@@ -34,5 +38,4 @@ build/
 
 ### VS Code ###
 .vscode/
-src/main/resources/private_key.pem
-src/main/resources/public_key.pem
+

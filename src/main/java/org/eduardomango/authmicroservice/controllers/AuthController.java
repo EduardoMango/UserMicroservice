@@ -43,7 +43,7 @@ public class AuthController {
                     content = @Content(schema = @Schema(implementation = AuthResponse.class))),
             @ApiResponse(responseCode = "401", description = "Invalid credentials")
     })
-    @PostMapping("/authenticate")
+    @PostMapping
     public ResponseEntity<AuthResponse> authenticate(@RequestBody AuthRequest loginUserDto) {
         CredentialsEntity authenticatedUser = authenticationService.authenticate(loginUserDto);
 

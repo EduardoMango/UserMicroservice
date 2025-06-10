@@ -62,10 +62,16 @@ public class AuthServiceImpl implements AuthService {
      */
     @Transactional
     public AuthResponse refreshAccessToken(String refreshToken) {
-        CredentialsEntity user = credentialsRepository.findByRefreshToken(refreshToken)
-                .orElseThrow(() -> new IllegalArgumentException("Invalid refresh token"));
+        String username = tokenProvider.extractUsername(refreshToken);
 
-        if (!tokenProvider.validateRefreshToken(refreshToken,user)) {
+        CredentialsEntity user = credentialsRepository.findByUsername(username)
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+
+        if (!user.getRefreshToken().equals(refreshToken)) {
+            throw new IllegalArgumentException("Refresh token does not match");
+        }
+
+        if (!tokenProvider.validateRefreshToken(refreshToken, user)) {
             throw new IllegalArgumentException("Refresh token expired or invalid");
         }
 

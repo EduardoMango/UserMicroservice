@@ -21,6 +21,7 @@ import java.util.Set;
 @Table(name = "credentials")
 @AllArgsConstructor
 @NoArgsConstructor
+@ToString
 public class CredentialsEntity implements UserDetails {
 
     @Id

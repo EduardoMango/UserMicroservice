@@ -4,7 +4,7 @@ document.getElementById("loginForm").onsubmit = function(event) {
     const username = document.getElementById("username").value;
     const password = document.getElementById("password").value;
 
-    fetch('/auth/authenticate', {
+    fetch('/auth', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'

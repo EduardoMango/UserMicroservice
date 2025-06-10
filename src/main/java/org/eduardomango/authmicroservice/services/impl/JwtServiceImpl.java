@@ -120,7 +120,9 @@ public class JwtServiceImpl implements JwtService {
                     .build()
                     .parseClaimsJws(refreshToken);
 
-            return !isTokenExpired(refreshToken);
+            final String username = extractUsername(refreshToken);
+            return (username.equals(userDetails.getUsername())) &&
+                    !isTokenExpired(refreshToken);
 
         } catch (JwtException e) {
             return false; // Invalid token
